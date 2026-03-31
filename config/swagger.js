@@ -7,10 +7,19 @@ const options = {
         info: {
             title: 'Book Library API',
             version: '1.0.0',
-            description: 'API documentation for the Book Library project'
-        }
+            description: 'API documentation for the Book Library project',
+        },
+        components: {
+            securitySchemes: {
+                bearerAuth: {
+                    type: 'http',
+                    scheme: 'bearer',
+                    bearerFormat: 'JWT',
+                },
+            },
+        },
     },
-    apis: ['./routes/*.js']
+    apis: ['./routes/*.js'], // path to your route files
 };
 
 const swaggerSpec = swaggerJsdoc(options);

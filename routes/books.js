@@ -2,6 +2,7 @@ const express = require('express');
 const { body, param } = require('express-validator');
 const Book = require('../models/Book');
 const validate = require('../middleware/validate');
+const auth = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -19,7 +20,7 @@ router.get('/', async (req, res, next) => {
     try {
         const books = await Book.find();
         res.json(books);
-    }   catch (err) {
+    } catch (err) {
         next(err);
     }
 });
@@ -54,7 +55,7 @@ router.get(
                 return res.status(404).json({ error: 'Book not found' });
             }
             res.json(book);
-        }   catch (err) {
+        } catch (err) {
             next(err);
         }
     }
@@ -65,7 +66,9 @@ router.get(
  * /books:
  *   post:
  *     summary: Create a new book
- *     description: Add a new book to the database.
+ *     description: Add a new book to the database. Requires authentication.
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -90,9 +93,12 @@ router.get(
  *     responses:
  *       201:
  *         description: Book created successfully.
+ *       401:
+ *         description: Unauthorized.
  */
 router.post(
     '/',
+    auth,
     [
         body('title').notEmpty().withMessage('Title is required'),
         body('author').notEmpty().withMessage('Author is required'),
@@ -114,8 +120,8 @@ router.post(
             const book = new Book(req.body);
             const saved = await book.save();
             res.status(201).json(saved);
-        }   catch (err) {
-        next(err);
+        } catch (err) {
+            next(err);
         }
     }
 );
@@ -125,7 +131,9 @@ router.post(
  * /books/{id}:
  *   put:
  *     summary: Update a book
- *     description: Update an existing book by its ID.
+ *     description: Update an existing book by its ID. Requires authentication.
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -142,11 +150,14 @@ router.post(
  *     responses:
  *       200:
  *         description: Book updated successfully.
+ *       401:
+ *         description: Unauthorized.
  *       404:
  *         description: Book not found.
  */
 router.put(
     '/:id',
+    auth,
     [
         param('id').isMongoId().withMessage('Invalid book ID'),
         body('title').optional().notEmpty().withMessage('Title cannot be empty'),
@@ -176,7 +187,7 @@ router.put(
             }
 
             res.json(updated);
-        }   catch (err) {
+        } catch (err) {
             next(err);
         }
     }
@@ -187,7 +198,9 @@ router.put(
  * /books/{id}:
  *   delete:
  *     summary: Delete a book
- *     description: Remove a book from the database by its ID.
+ *     description: Remove a book from the database by its ID. Requires authentication.
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -198,11 +211,14 @@ router.put(
  *     responses:
  *       200:
  *         description: Book deleted successfully.
+ *       401:
+ *         description: Unauthorized.
  *       404:
  *         description: Book not found.
  */
 router.delete(
     '/:id',
+    auth,
     param('id').isMongoId().withMessage('Invalid book ID'),
     validate,
     async (req, res, next) => {
@@ -212,7 +228,7 @@ router.delete(
                 return res.status(404).json({ error: 'Book not found' });
             }
             res.json({ message: 'Book deleted successfully' });
-        }   catch (err) {
+        } catch (err) {
             next(err);
         }
     }
